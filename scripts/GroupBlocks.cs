@@ -10,6 +10,8 @@ public class GroupBlocks : MonoBehaviour
 
     public Block firstBlock;
 
+    Coroutine horizontalMovementCoroutine;
+
     public void setFirstBlock(Block b)
     {
         block1 = b;
@@ -63,5 +65,43 @@ public class GroupBlocks : MonoBehaviour
         block3.transform.SetParent(null);
 
         GameObject.Destroy(gameObject);
+    }
+    
+    public void moveHorizontal(float displacement)
+    {
+        if(horizontalMovementCoroutine != null)
+        {
+            StopCoroutine(horizontalMovementCoroutine);
+        }
+        horizontalMovementCoroutine = StartCoroutine(_moveHorizontalSequence(displacement));
+    }
+
+
+    IEnumerator _moveHorizontalSequence(float dis)
+    {
+        float aux = transform.position.x;
+        if(aux > dis)
+        {
+            while (aux>dis)
+            {
+                aux = transform.position.x;
+
+                transform.position -= Vector3.right * Time.deltaTime * 15;
+                yield return null;
+            }
+            transform.position = new Vector3(dis, transform.position.y, 0);
+        } else
+        {
+            while (aux <= dis)
+            {
+                aux = transform.position.x;
+
+                transform.position += Vector3.right * Time.deltaTime * 15;
+                yield return null;
+
+            }
+            transform.position = new Vector3(dis, transform.position.y, 0);
+
+        }
     }
 }

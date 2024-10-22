@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -47,8 +48,8 @@ public class BoardManager : MonoBehaviour
     }
 
     void createRandomGroup(){
-        currentGroup = GameObject.Instantiate(groupBlocks_prefab, new Vector3(Random.Range(1, 8), 10, 0), Quaternion.identity);
-        currentGroupTarget = calculateCurrentGroupTarget(currentGroup.transform.position.y);
+        currentGroup = GameObject.Instantiate(groupBlocks_prefab, new Vector3(UnityEngine.Random.Range(1, 8), 10, 0), Quaternion.identity);
+        currentGroupTarget = calculateCurrentGroupTarget(currentGroup.transform.position.x);
     }
     IEnumerator startLoopGame() {
         while (loseGame == false)
@@ -63,7 +64,7 @@ public class BoardManager : MonoBehaviour
 
         while(currentGroup.transform.position.y > currentGroupTarget.y)
         {
-            currentGroup.displaceDown(3);
+            currentGroup.displaceDown(1.8f);
             yield return null;
         }
         currentGroup.transform.position = currentGroupTarget;
@@ -87,16 +88,52 @@ public class BoardManager : MonoBehaviour
 
     public void moveCurrentGroupYAxis(float pos)
     {
-        if(currentGroup.transform.position.x != pos)
+        pos = checkAvailableHorizontalRoute(currentGroup.transform.position, pos);
+        if (currentGroup.transform.position.x != pos)
         {
-            Debug.Log("Moviendo a la columna " + pos);
-            currentGroup.transform.position = new Vector3(pos,
-                currentGroup.transform.position.y, 0);
+            
+            currentGroup.moveHorizontal(pos);
             currentGroupTarget = calculateCurrentGroupTarget(pos);
         } else
         {
             currentGroup.rotateBlocks();
         }
+        Debug.Log("Target: " + currentGroupTarget);
+    }
+
+    float checkAvailableHorizontalRoute(Vector3 fromPosition, float toYPosition)
+    {
+        Vector3Int fromInt = worldToGrid(fromPosition);
+        int YtargetInt = (int)toYPosition - 1;
+
+        //Debug.Log("Verificando para fromInt: " + fromInt + " con un target: " + YtargetInt);
+        if(fromInt.x < YtargetInt)
+        {
+            while (fromInt.x <= YtargetInt)
+            {
+                //Debug.Log("Checkeando posiciones libres");
+                fromInt += Vector3Int.right;
+                if (blocks_dictionary.ContainsKey(fromInt))
+                {
+                    return fromInt.x;
+                }
+            }
+
+
+        } else
+        {
+            while (fromInt.x > YtargetInt)
+            {
+                //Debug.Log("Checkeando posiciones libres");
+                fromInt -= Vector3Int.right;
+                if (blocks_dictionary.ContainsKey(fromInt))
+                {
+                    return fromInt.x+2;
+                }
+            }
+        }
+
+        return toYPosition;
     }
 
     public void setupTestGame()
@@ -112,8 +149,8 @@ public class BoardManager : MonoBehaviour
     }
 
     Vector3 calculateCurrentGroupTarget(float pos) {
-
-        Vector3Int intp = worldToGrid(currentGroup.transform.position);
+        Debug.Log("Calculando target a partir de un pos: " + pos);
+        Vector3Int intp = worldToGrid(new Vector3(pos,currentGroup.transform.position.y,0));
         intp *= new Vector3Int(1,0,1);
 
         while (blocks_dictionary.ContainsKey(intp))

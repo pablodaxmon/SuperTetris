@@ -9,6 +9,7 @@ public class InputClicker : MonoBehaviour
     int posInYAxis = 1;
     private void OnMouseDown()
     {
+        Debug.Log("clicked");
         BoardManager.instance.moveCurrentGroupYAxis(posInYAxis);
     }
 }
